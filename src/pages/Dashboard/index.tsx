@@ -8,11 +8,28 @@ import { Title, Form, Repositories } from './styles';
 
 const Dashboard: React.FC = () => {
   const [newRepo, setNewRepo] = useState('');
-  const [repositories, setRepository] = useState([]);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
 
-  function handleAddRepository(event: FormEvent<HTMLFormElement>) {
+  interface Repository {
+    full_name: string;
+    description: string;
+    owner: {
+      login: string;
+      avatar_url: string;
+    };
+  }
+
+  async function handleAddRepository(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
-    console.log(newRepo);
+
+    const response = await api.get<Repository>(`repos/${newRepo}`);
+
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
   }
 
   return (
@@ -29,21 +46,20 @@ const Dashboard: React.FC = () => {
       </Form>
 
       <Repositories>
-        <a href="teste">
-          <img
-            src="https://avatars1.githubusercontent.com/u/6109271?s=460&u=cc5a1635f24d48562b20fe0d68e99dbdd5149917&v=4"
-            alt="Rodrigo Yoshioka"
-          />
-          <div>
-            <strong>ryoshii/be-the-hero</strong>
-            <p>
-              Projeto desenvolvido na Semana Omnistack 11.0 ministrada pela
-              Rocketseat.
-            </p>
-          </div>
+        {repositories.map((repository) => (
+          <a key={repository.full_name} href="teste">
+            <img
+              src={repository.owner.avatar_url}
+              alt={repository.owner.login}
+            />
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
 
-          <FiChevronRight size={20} />
-        </a>
+            <FiChevronRight size={20} />
+          </a>
+        ))}
       </Repositories>
     </>
   );
